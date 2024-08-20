@@ -209,7 +209,9 @@ char *cptr,
                         {
                         rowcnt=atoi(++cptr);
                         while (isdigit(*cptr) || *cptr == ' ') cptr++;
+                        if (rowcnt > 0) {
                         fprintf(ofp, SET_ROWCOUNT, rowcnt);
+                        }
                         }
                     continue;
                 case 'o':

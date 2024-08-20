@@ -106,7 +106,7 @@ CC      = gcc
 # Current values for MACHINE are:  ATT, DOS, HP, IBM, ICL, MVS, 
 #                                  SGI, SUN, U2200, VMS, LINUX, WIN32 
 # Current values for WORKLOAD are:  TPCH
-DATABASE=ORACLE 
+DATABASE=VECTORWISE 
 MACHINE = LINUX
 WORKLOAD =  TPCH
 #

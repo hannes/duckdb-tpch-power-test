@@ -51,10 +51,10 @@
  */
 #ifdef VECTORWISE
 #define GEN_QUERY_PLAN  "EXPLAIN"
-#define START_TRAN      ""
+#define START_TRAN      "BEGIN TRANSACTION;"
 #define END_TRAN        "COMMIT;"
 #define SET_OUTPUT      ""
-#define SET_ROWCOUNT    "first %d\n"
+#define SET_ROWCOUNT    "--LIMIT %d\n"
 #define SET_DBASE       ""
 #endif /* VECTORWISE */
 
