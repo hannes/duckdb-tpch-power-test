@@ -1,3 +1,9 @@
+.idea
+.DS_Store
 *.o
-dbgen
+dbgen/dbgen
 qgen
+*.tbl
+*.tbl.u*
+delete.*
+tpch_tools_3.0.1/dbgen/sf1*

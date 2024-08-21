@@ -3,19 +3,17 @@
 -- Functional Query Definition
 -- Approved February 1998
 :x
-create view revenue:s (supplier_no, total_revenue) as
-	select
-		l_suppkey,
-		sum(l_extendedprice * (1 - l_discount))
+:o
+with revenue:s as (select
+		l_suppkey supplier_no,
+		sum(l_extendedprice * (1 - l_discount)) total_revenue
 	from
 		lineitem
 	where
 		l_shipdate >= date ':1'
 		and l_shipdate < date ':1' + interval '3' month
 	group by
-		l_suppkey;
-
-:o
+		l_suppkey)
 select
 	s_suppkey,
 	s_name,
@@ -36,5 +34,4 @@ where
 order by
 	s_suppkey;
 
-drop view revenue:s;
 :n -1
