@@ -13,7 +13,7 @@ con0 = duckdb.connect(path)
 scale_factor = 100
 datadir = f'tpch_tools_3.0.1/dbgen/sf{scale_factor}'
 schema = pathlib.Path('schema.sql').read_text()
-use_parquet = True
+use_parquet = False
 reader = 'read_csv'
 ext = ''
 if use_parquet:
