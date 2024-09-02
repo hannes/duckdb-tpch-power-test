@@ -14,7 +14,7 @@ import datetime
 
 scale_factor = 1
 
-datadir = f'gen/new-sf{scale_factor}'
+datadir = f'gen/sf{scale_factor}'
 template_db_file = f'{datadir}/tpch_template.duckdb'
 db_file = f'{datadir}/tpch.duckdb'
 

@@ -5,7 +5,7 @@
 set -x
 
 SF=1
-DIR=gen/new-sf$SF
+DIR=gen/sf$SF
 DBGEN_PREFIX=tpch_tools_3.0.1/dbgen
 rm -rf $DIR
 mkdir -p $DIR
