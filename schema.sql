@@ -1,94 +1,70 @@
--- Sccsid:     @(#)dss.ddl	2.1.8.1
+-- Sccsid:     @(#)dss.ddl  2.1.8.1
+CREATE TABLE NATION  ( N_NATIONKEY  INTEGER NOT NULL,
+                            N_NAME       CHAR(25) NOT NULL,
+                            N_REGIONKEY  INTEGER NOT NULL,
+                            N_COMMENT    VARCHAR(152));
 
-CREATE TABLE nation
-(
-    n_nationkey  INTEGER not null,
-    n_name       CHAR(25) not null,
-    n_regionkey  INTEGER not null,
-    n_comment    VARCHAR(152)
-);
+CREATE TABLE REGION  ( R_REGIONKEY  INTEGER NOT NULL,
+                            R_NAME       CHAR(25) NOT NULL,
+                            R_COMMENT    VARCHAR(152));
 
-CREATE TABLE region
-(
-    r_regionkey  INTEGER not null,
-    r_name       CHAR(25) not null,
-    r_comment    VARCHAR(152)
-);
+CREATE TABLE PART  ( P_PARTKEY     INTEGER NOT NULL,
+                          P_NAME        VARCHAR(55) NOT NULL,
+                          P_MFGR        CHAR(25) NOT NULL,
+                          P_BRAND       CHAR(10) NOT NULL,
+                          P_TYPE        VARCHAR(25) NOT NULL,
+                          P_SIZE        INTEGER NOT NULL,
+                          P_CONTAINER   CHAR(10) NOT NULL,
+                          P_RETAILPRICE DECIMAL(15,2) NOT NULL,
+                          P_COMMENT     VARCHAR(23) NOT NULL);
 
-CREATE TABLE part
-(
-    p_partkey     BIGINT not null,
-    p_name        VARCHAR(55) not null,
-    p_mfgr        CHAR(25) not null,
-    p_brand       CHAR(10) not null,
-    p_type        VARCHAR(25) not null,
-    p_size        INTEGER not null,
-    p_container   CHAR(10) not null,
-    p_retailprice DOUBLE PRECISION not null,
-    p_comment     VARCHAR(23) not null
-);
+CREATE TABLE SUPPLIER ( S_SUPPKEY     INTEGER NOT NULL,
+                             S_NAME        CHAR(25) NOT NULL,
+                             S_ADDRESS     VARCHAR(40) NOT NULL,
+                             S_NATIONKEY   INTEGER NOT NULL,
+                             S_PHONE       CHAR(15) NOT NULL,
+                             S_ACCTBAL     DECIMAL(15,2) NOT NULL,
+                             S_COMMENT     VARCHAR(101) NOT NULL);
 
-CREATE TABLE supplier
-(
-    s_suppkey     BIGINT not null,
-    s_name        CHAR(25) not null,
-    s_address     VARCHAR(40) not null,
-    s_nationkey   INTEGER not null,
-    s_phone       CHAR(15) not null,
-    s_acctbal     DOUBLE PRECISION not null,
-    s_comment     VARCHAR(101) not null
-);
+CREATE TABLE PARTSUPP ( PS_PARTKEY     INTEGER NOT NULL,
+                             PS_SUPPKEY     INTEGER NOT NULL,
+                             PS_AVAILQTY    INTEGER NOT NULL,
+                             PS_SUPPLYCOST  DECIMAL(15,2)  NOT NULL,
+                             PS_COMMENT     VARCHAR(199) NOT NULL);
 
-CREATE TABLE partsupp
-(
-    ps_partkey     BIGINT not null,
-    ps_suppkey     BIGINT not null,
-    ps_availqty    BIGINT not null,
-    ps_supplycost  DOUBLE PRECISION  not null,
-    ps_comment     VARCHAR(199) not null
-);
+CREATE TABLE CUSTOMER ( C_CUSTKEY     INTEGER NOT NULL,
+                             C_NAME        VARCHAR(25) NOT NULL,
+                             C_ADDRESS     VARCHAR(40) NOT NULL,
+                             C_NATIONKEY   INTEGER NOT NULL,
+                             C_PHONE       CHAR(15) NOT NULL,
+                             C_ACCTBAL     DECIMAL(15,2)   NOT NULL,
+                             C_MKTSEGMENT  CHAR(10) NOT NULL,
+                             C_COMMENT     VARCHAR(117) NOT NULL);
 
-CREATE TABLE customer
-(
-    c_custkey     BIGINT not null,
-    c_name        VARCHAR(25) not null,
-    c_address     VARCHAR(40) not null,
-    c_nationkey   INTEGER not null,
-    c_phone       CHAR(15) not null,
-    c_acctbal     DOUBLE PRECISION   not null,
-    c_mktsegment  CHAR(10) not null,
-    c_comment     VARCHAR(117) not null
-);
+CREATE TABLE ORDERS  ( O_ORDERKEY       INTEGER NOT NULL,
+                           O_CUSTKEY        INTEGER NOT NULL,
+                           O_ORDERSTATUS    CHAR(1) NOT NULL,
+                           O_TOTALPRICE     DECIMAL(15,2) NOT NULL,
+                           O_ORDERDATE      DATE NOT NULL,
+                           O_ORDERPRIORITY  CHAR(15) NOT NULL,  
+                           O_CLERK          CHAR(15) NOT NULL, 
+                           O_SHIPPRIORITY   INTEGER NOT NULL,
+                           O_COMMENT        VARCHAR(79) NOT NULL);
 
-CREATE TABLE orders
-(
-    o_orderkey       BIGINT not null,
-    o_custkey        BIGINT not null,
-    o_orderstatus    CHAR(1) not null,
-    o_totalprice     DOUBLE PRECISION not null,
-    o_orderdate      DATE not null,
-    o_orderpriority  CHAR(15) not null,  
-    o_clerk          CHAR(15) not null, 
-    o_shippriority   INTEGER not null,
-    o_comment        VARCHAR(79) not null
-);
+CREATE TABLE LINEITEM ( L_ORDERKEY    INTEGER NOT NULL,
+                             L_PARTKEY     INTEGER NOT NULL,
+                             L_SUPPKEY     INTEGER NOT NULL,
+                             L_LINENUMBER  INTEGER NOT NULL,
+                             L_QUANTITY    DECIMAL(15,2) NOT NULL,
+                             L_EXTENDEDPRICE  DECIMAL(15,2) NOT NULL,
+                             L_DISCOUNT    DECIMAL(15,2) NOT NULL,
+                             L_TAX         DECIMAL(15,2) NOT NULL,
+                             L_RETURNFLAG  CHAR(1) NOT NULL,
+                             L_LINESTATUS  CHAR(1) NOT NULL,
+                             L_SHIPDATE    DATE NOT NULL,
+                             L_COMMITDATE  DATE NOT NULL,
+                             L_RECEIPTDATE DATE NOT NULL,
+                             L_SHIPINSTRUCT CHAR(25) NOT NULL,
+                             L_SHIPMODE     CHAR(10) NOT NULL,
+                             L_COMMENT      VARCHAR(44) NOT NULL);
 
-CREATE TABLE lineitem
-(
-    l_orderkey    BIGINT not null,
-    l_partkey     BIGINT not null,
-    l_suppkey     BIGINT not null,
-    l_linenumber  BIGINT not null,
-    l_quantity    DOUBLE PRECISION not null,
-    l_extendedprice  DOUBLE PRECISION not null,
-    l_discount    DOUBLE PRECISION not null,
-    l_tax         DOUBLE PRECISION not null,
-    l_returnflag  CHAR(1) not null,
-    l_linestatus  CHAR(1) not null,
-    l_shipdate    DATE not null,
-    l_commitdate  DATE not null,
-    l_receiptdate DATE not null,
-    l_shipinstruct CHAR(25) not null,
-    l_shipmode     CHAR(10) not null,
-    l_comment      VARCHAR(44) not null
-);

@@ -1,0 +1,13 @@
+./dbgen -s 1
+./dbgen -s 1 -U 4000 
+diff
+
+
+customer.tbl
+lineitem.tbl
+nation.tbl
+orders.tbl
+part.tbl
+partsupp.tbl
+region.tbl
+supplier.tbl
