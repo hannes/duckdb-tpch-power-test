@@ -12,7 +12,7 @@ import shutil
 import psutil
 import datetime
 
-scale_factor = 1
+scale_factor = 1000
 
 datadir = f'gen/sf{scale_factor}'
 template_db_file = f'{datadir}/tpch_template.duckdb'
@@ -90,7 +90,7 @@ else:
 
 shutil.copyfile(template_db_file, db_file)
 con0 = duckdb.connect(db_file)
-con0.execute("SET wal_autocheckpoint='100MB'")
+con0.execute("SET wal_autocheckpoint='1GB'")
 
 def query(n):
 	print(f"starting query stream {n}")
@@ -106,7 +106,7 @@ def query(n):
 		con.execute(q)
 		con.execute("COMMIT")
 		duration = time.time() - start
-		#print(f"done query {n} {query_idx} {duration}")
+		print(f"done query {n} {query_idx} {round(duration, 2)}")
 		timings.append(duration)
 		query_idx = query_idx + 1
 	con.close()
@@ -158,7 +158,6 @@ def refresh(ns):
 	con = con0.cursor()
 	for n in ns:
 		RF(con, n)
-		print(f"done refresh {n}")
 
 n_refresh = max(round(scale_factor * 0.1), 1)
 

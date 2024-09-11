@@ -1,0 +1,3 @@
+copy (select filename.replace('orders.tbl.u','')::int refresh_set, * exclude filename from read_csv('orders.tbl.u*', filename=true)) to 'orders_refresh.parquet';
+
+copy (select filename.replace('lineitem.tbl.u','')::int refresh_set, * exclude filename from read_csv('lineitem.tbl.u*', filename=true)) to 'lineitem_refresh.parquet';
