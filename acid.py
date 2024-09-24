@@ -43,10 +43,9 @@ if not os.path.exists(template_db_file):
 shutil.copyfile(template_db_file, db_file)
 con = duckdb.connect(db_file)
 
-# need to create the history table
+# need to create the history table and the trunc macro
 con.execute("CREATE TABLE IF NOT EXISTS history (h_p_key bigint, h_s_key bigint, h_o_key bigint, h_l_key bigint, h_delta integer, h_date_t datetime)")
-
-con.execute("CREATE MACRO IF NOT EXISTS trunc(n, p) as (floor(n*(10^p)))/(10^p)")
+con.execute("CREATE MACRO IF NOT EXISTS trunc(n, p) as (floor(n*(10^p)))/(10^p)::DECIMAL(15,2)")
 
 def trunc(n, p):
 	return (math.floor(n*(10^p))) / (10^p)
@@ -65,6 +64,74 @@ def get_timestamp():
 
 def acid_transaction(con, o_key, l_key, delta, date):
 	con.begin()
+	# con.execute('SET VARIABLE l_key = ?', [l_key])
+	# con.execute('SET VARIABLE o_key = ?', [o_key])
+	# con.execute('SET VARIABLE delta = ?', [delta])
+	# con.execute('SET VARIABLE date  = ?', [date])
+
+	# res = con.execute("""
+	# 	SET VARIABLE o_elements = 
+	# 		(SELECT {ototal: o_totalprice} FROM orders WHERE o_orderkey=getvariable('o_key'));
+	# 	SET VARIABLE ototal = getvariable('o_elements')['ototal'];
+
+	# 	SET VARIABLE l_elements = 
+	# 		(SELECT {quantity: l_quantity, extprice: l_extendedprice, pkey: l_partkey, skey: l_suppkey, tax: l_tax, disc: l_discount} 
+	# 			FROM lineitem 
+	# 			WHERE l_orderkey=getvariable('o_key') AND l_linenumber=getvariable('l_key'));
+		
+	# 	SET VARIABLE quantity = getvariable('l_elements')['quantity'];
+	# 	SET VARIABLE extprice = getvariable('l_elements')['extprice'];
+	# 	SET VARIABLE pkey     = getvariable('l_elements')['pkey'];
+	# 	SET VARIABLE skey     = getvariable('l_elements')['skey'];
+	# 	SET VARIABLE tax      = getvariable('l_elements')['tax'];
+	# 	SET VARIABLE disc     = getvariable('l_elements')['disc'];
+
+	# 	SET VARIABLE ototal       = getvariable('ototal') - trunc(trunc(getvariable('extprice') * (1 - getvariable('disc')), 2) * (1 + getvariable('tax')), 2);
+	# 	SET VARIABLE ototal       = getvariable('ototal') - trunc(trunc(getvariable('extprice') * (1 - getvariable('disc')), 2) * (1 + getvariable('tax')), 2);
+	# 	SET VARIABLE rprice       = trunc(getvariable('extprice')/getvariable('quantity'), 2);
+	# 	SET VARIABLE cost         = trunc(getvariable('rprice') * getvariable('delta'), 2);
+	# 	SET VARIABLE new_extprice = getvariable('extprice') + getvariable('cost');
+	# 	SET VARIABLE new_ototal   = trunc(getvariable('new_extprice') * (1.0 - getvariable('disc')), 2);
+	# 	SET VARIABLE new_ototal   = trunc(getvariable('new_ototal') * (1.0 + getvariable('tax')), 2);
+	# 	SET VARIABLE new_ototal   = getvariable('ototal') + getvariable('new_ototal');
+	# 	SET VARIABLE new_quantity = getvariable('quantity') + getvariable('delta');
+
+	# 	UPDATE lineitem SET 
+	# 			l_extendedprice = getvariable('new_extprice'), 
+	# 			l_quantity = getvariable('new_quantity') 
+	# 		WHERE l_orderkey=getvariable('o_key') 
+	# 		AND l_linenumber=getvariable('l_key');
+
+	# 	UPDATE orders SET 
+	# 			o_totalprice = getvariable('new_ototal') 
+	# 		WHERE o_orderkey=getvariable('o_key');
+
+	# 	INSERT INTO history VALUES (
+	# 		getvariable('pkey') , 
+	# 		getvariable('skey') , 
+	# 		getvariable('o_key'), 
+	# 		getvariable('l_key'), 
+	# 		getvariable('delta'), 
+	# 		getvariable('date'));
+
+	# 	SELECT {
+	# 		rprice       : getvariable('rprice'), 
+	# 		quantity     : getvariable('quantity'), 
+	# 		tax          : getvariable('tax'), 
+	# 		disc         : getvariable('disc'), 
+	# 		extprice     : getvariable('extprice'), 
+	# 		ototal       : getvariable('ototal'), 
+	# 		new_extprice : getvariable('new_extprice'), 
+	# 		new_quantity : getvariable('new_quantity'), 
+	# 		new_ototal   : getvariable('new_ototal'), 
+	# 		delta        : getvariable('delta'), 
+	# 		date         : getvariable('date')};
+	# """).fetchone()[0]
+
+
+	# print(res)
+
+	# return res
 	ototal = con.execute(f"SELECT o_totalprice FROM orders WHERE o_orderkey={o_key}").fetchone()[0]
 	quantity, extprice, pkey, skey, tax, disc = con.execute(f"SELECT l_quantity, l_extendedprice, l_partkey, l_suppkey, l_tax, l_discount FROM lineitem WHERE l_orderkey={o_key} AND l_linenumber={l_key}").fetchone()
 
@@ -79,15 +146,12 @@ def acid_transaction(con, o_key, l_key, delta, date):
 	con.execute(f"UPDATE lineitem SET l_extendedprice = {new_extprice}, l_quantity = {new_quantity} WHERE l_orderkey={o_key} AND l_linenumber={l_key}")
 	con.execute(f"UPDATE orders SET o_totalprice = {new_ototal} WHERE o_orderkey={o_key}")
 	con.execute(f"INSERT INTO history VALUES ({pkey}, {skey}, {o_key}, {l_key}, {delta}, '{date}')")
-
-	return {'rprice':rprice, 'quantity':quantity, 'tax':tax, 'disc':disc, 'extprice':extprice, 'ototal':ototal, 'new_extprice' : new_extprice, 'new_quantity' : new_quantity, 'new_ototal' : new_ototal, 'delta' : delta, 'date' : date}
+	return {'rprice':rprice, 'quantity':quantity, 'tax':tax, 'disc':disc, 'extprice':extprice, 'ototal':ototal, 'new_extprice' : new_extprice, 'new_quantity' : new_quantity, 'new_ototal' : new_ototal, 'delta' : delta, 'date' : date, 'p_key': pkey, 's_key' : skey} 
 
 
 def acid_query(con, o_key):
 	res = con.execute(f"SELECT SUM(trunc(trunc(L_EXTENDEDPRICE * (1 - L_DISCOUNT),2) * (1 + L_TAX),2)) FROM LINEITEM WHERE L_ORDERKEY = {o_key}").fetchone()[0]
 	return res
-
-
 
 def get_state(con, l_key, o_key):
 	ototal = con.execute(f"SELECT o_totalprice FROM orders where o_orderkey={o_key}").fetchone()[0]
@@ -136,12 +200,13 @@ def acid_3_2_2_2():
 acid_3_2_2_2()
 
 
-# consistency tests
-def acid_3_3():
-	def check_consistency_condition(con):
-		# spec says at least ten orders but we can just do all because we're duckdb
-		assert con.execute("SELECT bool_and(condition_holds) is_consistent from (SELECT o_totalprice, sum(trunc(trunc(l_extendedprice *(1 - l_discount),2) * (1+l_tax),2)) totalprice_derived, abs(o_totalprice - totalprice_derived) < 1 condition_holds FROM lineitem JOIN orders ON l_orderkey = o_orderkey GROUP BY l_orderkey, o_totalprice)").fetchone()[0]
+def check_consistency_condition(con):
+	# spec says at least ten orders but we can just do all because we're duckdb
+	assert con.execute("SELECT bool_and(condition_holds) is_consistent from (SELECT o_totalprice, sum(trunc(trunc(l_extendedprice *(1 - l_discount),2) * (1+l_tax),2)) totalprice_derived, abs(o_totalprice - totalprice_derived) < 1 condition_holds FROM lineitem JOIN orders ON l_orderkey = o_orderkey GROUP BY l_orderkey, o_totalprice)").fetchone()[0]
 
+
+# 3.3 consistency tests
+def acid_3_3():
 	check_consistency_condition(con)
 	consistency_threads = 10 # because why not
 
@@ -242,7 +307,7 @@ def acid_3_4_2_2():
 	# final check, the changes are now NOT visible
 	final_result = acid_query(con, o_key)
 	assert final_result == initial_result
-	# additional verification that the update happened
+	# additional verification that the update did NOT happen
 	verify_state(con, previous_state, transaction_result, False)
 
 acid_3_4_2_2()
@@ -326,7 +391,7 @@ def acid_3_4_2_4():
 	# final check, the changes are now NOT visible
 	final_result = acid_query(con, o_key)
 	assert final_result == initial_result
-	# additional verification that the update happened
+	# additional verification that the update dit NOT happen
 	verify_state(con, previous_state, transaction_result, False)
 
 
@@ -373,7 +438,32 @@ def acid_3_4_2_5():
 
 acid_3_4_2_5()
 
+
 # 3.4.2.6 Isolation Test 6
-# TODO
+def acid_3_4_2_6():
+	pass
+# This test demonstrates that the continuous submission of arbitrary (read-only) queries against one or more tables of
+# the database does not indefinitely delay update transactions affecting those tables from making progress.
+# 1. Start a transaction Txn1. Txn1 executes Q1 (from Clause 2.4) against the qualification database where the sub-
+# stitution parameter [delta] is chosen from the interval [0 .. 2159] so that the query runs for a sufficient length of
+# time.
+# Comment: Choosing [delta] = 0 will maximize the run time of Txn1.
+# 2. Before Txn1 completes, submit an ACID Transaction Txn2 with randomly selected values of O_KEY, L_KEY
+# and DELTA.
+# If Txn2 completes before Txn1 completes, verify that the appropriate rows in the ORDERS, LINEITEM and HIS-
+# TORY tables have been changed. In this case, the test is complete with only Steps 1 and 2. If Txn2 will not complete
+# before Txn1 completes, perform Steps 3 and 4:
+# 3. Ensure that Txn1 is still active. Submit a third transaction Txn3, which executes Q1 against the qualification
+# database with a test-sponsor selected value of the substitution parameter [delta] that is not equal to the one used
+# in Step 1.
+# 4. Verify that Txn2 completes before Txn3, and that the appropriate rows in the ORDERS, LINEITEM and HIS-
+# TORY tables have been changed.
+# Comment: In some implementations Txn2 will not queue behind Txn1. If Txn2 completes prior to Txn1 comple-
+# tion, it is not necessary to run Txn3 in order to demonstrate that updates will be processed in a timely manner as
+# required by Isolation Tests.
+
+
+acid_3_4_2_6()
+
 
 print('✅')

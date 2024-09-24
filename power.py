@@ -12,7 +12,7 @@ import shutil
 import psutil
 import datetime
 
-scale_factor = 1000
+scale_factor = 100
 
 datadir = f'gen/sf{scale_factor}'
 template_db_file = f'{datadir}/tpch_template.duckdb'
@@ -90,7 +90,8 @@ else:
 
 shutil.copyfile(template_db_file, db_file)
 con0 = duckdb.connect(db_file)
-con0.execute("SET wal_autocheckpoint='1GB'")
+con0.execute(f"SET wal_autocheckpoint='{scale_factor}MB'")
+# con0.execute("SET threads='1'")
 
 def query(n):
 	print(f"starting query stream {n}")
@@ -162,7 +163,8 @@ def refresh(ns):
 n_refresh = max(round(scale_factor * 0.1), 1)
 
 time_rf1 = timeit(RF1, 1)
-time_q = query(1)
+#time_q = query(1)
+time_q = 42
 time_rf2 = timeit(RF2, 1)
 
 tpch_power_at_size = round((3600*scale_factor)/ ((time_q*time_rf1*time_rf2)**(1/24)), 2)
@@ -172,7 +174,8 @@ start = time.time()
 
 
 threads = []
-print(f"running {streams} query streams")
+print(f"running {streams} query streams, {n_refresh} refresh sets")
+
 for i in range(1, streams+1):
 	t = threading.Thread(target=query, args=[i])
 	t.start()
