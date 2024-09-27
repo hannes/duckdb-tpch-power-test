@@ -4,7 +4,7 @@
 
 set -x
 
-SF=100
+SF=1000
 DIR=gen/sf$SF
 DBGEN_PREFIX=tpch_tools_3.0.1/dbgen
 rm -rf $DIR
