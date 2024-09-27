@@ -23,7 +23,7 @@ mv $DBGEN_PREFIX/queries*.sql $DIR
 rm -f $DBGEN_PREFIX/*.tbl $DBGEN_PREFIX/*.tbl.u* $DBGEN_PREFIX/delete.*
 (cd $DBGEN_PREFIX && ./dbgen -s $SF)
 mv $DBGEN_PREFIX/*.tbl $DIR
-(cd $DBGEN_PREFIX && ./dbgen -s $SF -U 100)
+(cd $DBGEN_PREFIX && ./dbgen -s $SF -U 101)
 mv $DBGEN_PREFIX/*.tbl.u* $DBGEN_PREFIX/delete.* $DIR
 
 (cd $DIR; python3 ../../convert.py)
