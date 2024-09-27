@@ -19,7 +19,7 @@ template_db_file = f'{datadir}/tpch_template.duckdb'
 db_file = f'{datadir}/tpch.duckdb'
 
 # from section 5.3.4 of tpch spec
-scale_factor_streams_map = {1:2, 10: 3, 100:5, 300:6, 1000:7}
+scale_factor_streams_map = {1: 2, 10: 3, 30: 4, 100: 5, 300: 6, 1000: 7, 3000: 8, 10000: 9}
 streams = scale_factor_streams_map[scale_factor]
 
 print(f"Scale factor {scale_factor}")
