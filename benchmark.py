@@ -11,10 +11,18 @@ import shutil
 import psutil
 import datetime
 
-scale_factor = os.environ.get("SF")
+scale_factor = int(os.environ.get("SF"))
+
+print(f"Running the TPC-H Benchmark on scale factor {scale_factor}")
 
 datadir = f'gen/sf{scale_factor}'
+
+if (not os.path.exists(datadir)):
+	print(f"Data directory {datadir} does not exist, exiting")
+	exit(-1)
+
 template_db_file = f'{datadir}/tpch_template.duckdb'
+
 db_file = f'{datadir}/tpch.duckdb'
 
 # from section 5.3.4 of tpch spec
