@@ -40,7 +40,7 @@ if use_parquet:
 else:
 	print("CSV refresh")
 
-logfile = f'log-sf{scale_factor}-{str(datetime.datetime.now(datetime.UTC)).replace(' ','T')}.tsv'
+logfile = f'log-sf{scale_factor}-{str(datetime.datetime.now(datetime.UTC)).replace(' ', 'T').replace(':', '-')}.tsv'
 proceed = True
 
 def monitor():
