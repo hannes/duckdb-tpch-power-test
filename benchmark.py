@@ -11,7 +11,7 @@ import shutil
 import psutil
 import datetime
 
-scale_factor = 100
+scale_factor = os.environ.get("SF")
 
 datadir = f'gen/sf{scale_factor}'
 template_db_file = f'{datadir}/tpch_template.duckdb'
