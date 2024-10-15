@@ -1,8 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# script from hell, with apologies
-
-set -x
+set -euxo pipefail
 
 SF=100
 DIR=gen/sf$SF
@@ -27,5 +25,3 @@ mv $DBGEN_PREFIX/*.tbl $DIR
 mv $DBGEN_PREFIX/*.tbl.u* $DBGEN_PREFIX/delete.* $DIR
 
 (cd $DIR; python3 ../../convert.py)
-
-
