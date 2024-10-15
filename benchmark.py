@@ -104,7 +104,7 @@ con0.execute(f"SET wal_autocheckpoint='{scale_factor}MB'")
 # con0.execute("SET threads='1'")
 
 def query(n):
-	print(f"starting query stream {n}")
+	print(f"Starting query stream {n}")
 	con = con0.cursor()
 	queries = pathlib.Path(f'{datadir}/queries{n}.sql').read_text().split(";")
 	timings = []
@@ -117,12 +117,12 @@ def query(n):
 		con.execute(q)
 		con.execute("COMMIT")
 		duration = time.time() - start
-		print(f"done query {n} {query_idx} {round(duration, 2)}")
+		print(f"Done query {n} {query_idx} {round(duration, 2)}")
 		timings.append(duration)
 		query_idx = query_idx + 1
 	con.close()
 	time_prod = functools.reduce(operator.mul, timings)
-	print(f"done query stream {n}")
+	print(f"Done query stream {n}")
 	return time_prod
 
 def RF1(n):
@@ -177,13 +177,13 @@ time_q = query(1)
 time_rf2 = timeit(RF2, 1)
 
 tpch_power_at_size = round((3600*scale_factor)/ ((time_q*time_rf1*time_rf2)**(1/24)), 2)
-print(f"tpch_power_at_size              = {tpch_power_at_size}")
+print(f"tpch_power_at_size              = {tpch_power_at_size:.2f}")
 
 start = time.time()
 
 
 threads = []
-print(f"running {streams} query streams, {n_refresh} refresh sets")
+print(f"Running {streams} query streams, {n_refresh} refresh sets")
 
 for i in range(1, streams+1):
 	t = threading.Thread(target=query, args=[i])
