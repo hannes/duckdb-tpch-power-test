@@ -81,7 +81,8 @@ if os.path.exists(wal_file):
 	os.remove(wal_file)
 
 if not os.path.exists(template_db_file):
-	print(f"begin loading into {template_db_file}")
+	print(f"Begin loading into {template_db_file}")
+	start = time.time()
 	con = duckdb.connect(template_db_file)
 	schema = pathlib.Path('schema.sql').read_text()
 	con.execute(schema)
@@ -91,9 +92,11 @@ if not os.path.exists(template_db_file):
 	con.execute("CHECKPOINT")
 	con.execute("CHECKPOINT")
 	con.close()
-	print("done loading")
+	load_duration = time.time() - start
+	print(f"Done loading in {load_duration:.1f} seconds")
 else:
-	print(f"cached db from {template_db_file}")
+	load_duration = None
+	print(f"Use cached database from {template_db_file}")
 
 shutil.copyfile(template_db_file, db_file)
 con0 = duckdb.connect(db_file)
@@ -200,7 +203,13 @@ throughput_measurement_interval = round(time.time() - start, 2)
 tpch_throughput_at_size = round((streams * 22 * 3600) / throughput_measurement_interval * scale_factor, 2)
 tpch_qphh_at_size = round((tpch_power_at_size * tpch_throughput_at_size)**(1/2), 2)
 
-print(f"throughput_measurement_interval = {throughput_measurement_interval}")
-print(f"tpch_power_at_size              = {tpch_power_at_size}")
-print(f"tpch_throughput_at_size         = {tpch_throughput_at_size}")
-print(f"tpch_qphh_at_size               = {tpch_qphh_at_size}")
+print()
+if load_duration is None:
+	load_duration_str = "n/a (ran on cached database)"
+else:
+	load_duration_str = f"{load_duration:.1f} seconds"
+print(f"tpch_load_time                  = {load_duration_str}")
+print(f"throughput_measurement_interval = {throughput_measurement_interval:.2f}")
+print(f"tpch_power_at_size              = {tpch_power_at_size:.2f}")
+print(f"tpch_throughput_at_size         = {tpch_throughput_at_size:.2f}")
+print(f"tpch_qphh_at_size               = {tpch_qphh_at_size:.2f}")
