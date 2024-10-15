@@ -193,5 +193,6 @@ tpch_throughput_at_size = round((streams * 22 * 3600) / throughput_measurement_i
 tpch_qphh_at_size = round((tpch_power_at_size * tpch_throughput_at_size)**(1/2), 2)
 
 print(f"throughput_measurement_interval = {throughput_measurement_interval}")
+print(f"tpch_power_at_size              = {tpch_power_at_size}")
 print(f"tpch_throughput_at_size         = {tpch_throughput_at_size}")
 print(f"tpch_qphh_at_size               = {tpch_qphh_at_size}")
