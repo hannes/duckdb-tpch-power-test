@@ -3,7 +3,6 @@
 import threading
 import duckdb
 import pathlib
-import tempfile
 import time
 import functools
 import operator
