@@ -1,4 +1,0 @@
-install requirements from requirements.txt
-
-run generate.sh to generate data, adapt SF variable to taste
-then edit scale_factor in power.py and run it
