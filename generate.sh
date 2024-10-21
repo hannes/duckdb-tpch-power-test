@@ -1,10 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# script from hell, with apologies
+set -euxo pipefail
 
-set -x
-
-SF=100
 DIR=gen/sf$SF
 DBGEN_PREFIX=tpch_tools_3.0.1/dbgen
 rm -rf $DIR
@@ -27,5 +24,3 @@ mv $DBGEN_PREFIX/*.tbl $DIR
 mv $DBGEN_PREFIX/*.tbl.u* $DBGEN_PREFIX/delete.* $DIR
 
 (cd $DIR; python3 ../../convert.py)
-
-

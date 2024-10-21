@@ -3,7 +3,6 @@
 import threading
 import duckdb
 import pathlib
-import tempfile
 import time
 import functools
 import operator
@@ -12,10 +11,18 @@ import shutil
 import psutil
 import datetime
 
-scale_factor = 100
+scale_factor = int(os.environ.get("SF"))
+
+print(f"Running the TPC-H Benchmark on scale factor {scale_factor}")
 
 datadir = f'gen/sf{scale_factor}'
+
+if (not os.path.exists(datadir)):
+	print(f"Data directory {datadir} does not exist, exiting")
+	exit(-1)
+
 template_db_file = f'{datadir}/tpch_template.duckdb'
+
 db_file = f'{datadir}/tpch.duckdb'
 
 # from section 5.3.4 of tpch spec
@@ -33,7 +40,7 @@ if use_parquet:
 else:
 	print("CSV refresh")
 
-logfile = f'log-sf{scale_factor}-{str(datetime.datetime.now(datetime.UTC)).replace(' ','T')}.tsv'
+logfile = f'log-sf{scale_factor}-{str(datetime.datetime.now(datetime.UTC)).replace(' ', 'T').replace(':', '-')}.tsv'
 proceed = True
 
 def monitor():
@@ -74,7 +81,8 @@ if os.path.exists(wal_file):
 	os.remove(wal_file)
 
 if not os.path.exists(template_db_file):
-	print(f"begin loading into {template_db_file}")
+	print(f"Begin loading into {template_db_file}")
+	start = time.time()
 	con = duckdb.connect(template_db_file)
 	schema = pathlib.Path('schema.sql').read_text()
 	con.execute(schema)
@@ -84,9 +92,11 @@ if not os.path.exists(template_db_file):
 	con.execute("CHECKPOINT")
 	con.execute("CHECKPOINT")
 	con.close()
-	print("done loading")
+	load_duration = time.time() - start
+	print(f"Done loading in {load_duration:.1f} seconds")
 else:
-	print(f"cached db from {template_db_file}")
+	load_duration = None
+	print(f"Use cached database from {template_db_file}")
 
 shutil.copyfile(template_db_file, db_file)
 con0 = duckdb.connect(db_file)
@@ -94,7 +104,7 @@ con0.execute(f"SET wal_autocheckpoint='{scale_factor}MB'")
 # con0.execute("SET threads='1'")
 
 def query(n):
-	print(f"starting query stream {n}")
+	print(f"Starting query stream {n}")
 	con = con0.cursor()
 	queries = pathlib.Path(f'{datadir}/queries{n}.sql').read_text().split(";")
 	timings = []
@@ -107,12 +117,12 @@ def query(n):
 		con.execute(q)
 		con.execute("COMMIT")
 		duration = time.time() - start
-		print(f"done query {n} {query_idx} {round(duration, 2)}")
+		print(f"Done query {n} {query_idx} {round(duration, 2)}")
 		timings.append(duration)
 		query_idx = query_idx + 1
 	con.close()
 	time_prod = functools.reduce(operator.mul, timings)
-	print(f"done query stream {n}")
+	print(f"Done query stream {n}")
 	return time_prod
 
 def RF1(n):
@@ -167,13 +177,13 @@ time_q = query(1)
 time_rf2 = timeit(RF2, 1)
 
 tpch_power_at_size = round((3600*scale_factor)/ ((time_q*time_rf1*time_rf2)**(1/24)), 2)
-print(f"tpch_power_at_size              = {tpch_power_at_size}")
+print(f"tpch_power_at_size              = {tpch_power_at_size:.2f}")
 
 start = time.time()
 
 
 threads = []
-print(f"running {streams} query streams, {n_refresh} refresh sets")
+print(f"Running {streams} query streams, {n_refresh} refresh sets")
 
 for i in range(1, streams+1):
 	t = threading.Thread(target=query, args=[i])
@@ -193,6 +203,13 @@ throughput_measurement_interval = round(time.time() - start, 2)
 tpch_throughput_at_size = round((streams * 22 * 3600) / throughput_measurement_interval * scale_factor, 2)
 tpch_qphh_at_size = round((tpch_power_at_size * tpch_throughput_at_size)**(1/2), 2)
 
-print(f"throughput_measurement_interval = {throughput_measurement_interval}")
-print(f"tpch_throughput_at_size         = {tpch_throughput_at_size}")
-print(f"tpch_qphh_at_size               = {tpch_qphh_at_size}")
+print()
+if load_duration is None:
+	load_duration_str = "n/a (ran on cached database)"
+else:
+	load_duration_str = f"{load_duration:.1f} seconds"
+print(f"tpch_load_time                  = {load_duration_str}")
+print(f"throughput_measurement_interval = {throughput_measurement_interval:.2f}")
+print(f"tpch_power_at_size              = {tpch_power_at_size:.2f}")
+print(f"tpch_throughput_at_size         = {tpch_throughput_at_size:.2f}")
+print(f"tpch_qphh_at_size               = {tpch_qphh_at_size:.2f}")
